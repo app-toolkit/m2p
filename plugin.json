@@ -1,0 +1,13 @@
+{
+  "pluginName": "m2p",
+  "version": "1.0.0",
+  "description": "海报图快速制作",
+  "keywords": [
+    "markdown"
+  ],
+  "entry": "dist/index.html",
+  "pluginType": "ui",
+  "mode": "multi",
+  "author": "TrumanDu",
+  "homepage": "https://github.com/app-toolkit/"
+}

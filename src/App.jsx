@@ -8,6 +8,7 @@ import {
   Md2PosterFooter,
 } from "markdown-to-poster";
 
+import Loading from "./components/Loading";
 import "./App.css";
 
 function App() {
@@ -38,6 +39,9 @@ function App() {
   );
 
   const [theme, setTheme] = useState("SpringGradientWave");
+  const [sizeType, setSizeType] = useState("desktop");
+  const [ratioType, setRatioType] = useState("auto");
+  const [loading, setLoading] = useState(false);
   const posterRef = useRef(null);
 
   const handleChange = (event) => {
@@ -48,18 +52,38 @@ function App() {
     setTheme(event.target.value);
   };
 
-  const downImage = () => {
-    const link = document.createElement("a");
-    link.href = downImage;
-    link.download = imageName;
-    link.click();
-    window.URL.revokeObjectURL(downImage);
+  const handleSizeTypeChange = (event) => {
+    setSizeType(event.target.value);
+  };
+
+  const handleRatioTypeChange = (event) => {
+    setRatioType(event.target.value);
+  };
+
+  const downloadImageFromBlob = (blob, filename) => {
+    const blobUrl = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+
+    a.click();
+
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
   };
 
   const handleButtonClick = async () => {
-    const result = await posterRef.current.handleCopy();
-    downImage(result);
-    console.log(result);
+    setLoading(true);
+    try {
+      const blob = await posterRef.current.handleCopy();
+      downloadImageFromBlob(blob, "output.png");
+    } catch (error) {
+      console.error("handleCopy 出错:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -67,6 +91,7 @@ function App() {
       className="bg-gradient-to-r from-indigo-400 to-cyan-400  py-8 space-y-6"
       style={{ height: "100vh" }}
     >
+      <Loading show={loading} />
       <h1 className="text-3xl font-bold text-center text-gray-800">
         Markdown To Poster
       </h1>
@@ -88,6 +113,24 @@ function App() {
               <option value="gray">gray</option>
               <option value="red">red</option>
               <option value="indigo">indigo</option>
+            </select>
+            <select
+              className="border border-gray-300 rounded p-2"
+              onChange={handleSizeTypeChange}
+              value={sizeType}
+            >
+              <option value="desktop">desktop</option>
+              <option value="mobile">mobile</option>
+            </select>
+            <select
+              className="border border-gray-300 rounded p-2"
+              onChange={handleRatioTypeChange}
+              value={ratioType}
+            >
+              <option value="auto">auto</option>
+              <option value="16/9">16/9</option>
+              <option value="1/1">1/1</option>
+              <option value="4/3">4/3</option>
             </select>
             <button
               className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
@@ -112,10 +155,16 @@ function App() {
             id="preview"
             className="w-full h-[80vh] p-2 border rounded bg-gray-100 overflow-auto"
           >
-            <Md2Poster className="!max-w-none" theme={theme} ref={posterRef}>
+            <Md2Poster
+              className="!max-w-none"
+              theme={theme}
+              ref={posterRef}
+              size={sizeType}
+              aspectRatio={ratioType}
+            >
               <Md2PosterHeader></Md2PosterHeader>
               <Md2PosterContent>{markdown}</Md2PosterContent>
-              <Md2PosterFooter>Powered by trumandu.com</Md2PosterFooter>
+              <Md2PosterFooter>Powered by toolkit.trumandu.top</Md2PosterFooter>
             </Md2Poster>
           </div>
         </div>
